@@ -6,15 +6,32 @@ on:
       - "main"
 
 jobs:
-  create_pr_repo_sync:
+  merge-to-stage:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Create pull request
-        id: open-pr
-        uses: repo-sync/pull-request@v2
-        with:
-          destination_branch: "stage"
-          pr_title: "Sync main into stage (Auto-created PR)"
-          pr_template: ".github/PULL_REQUEST_TEMPLATE.md"
-          pr_reviewer: "DBAJoker"
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Create PR from main to stage
+      run: |
+        git checkout main
+        git pull origin main
+        git checkout -b stage
+        git push origin stage
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Approve PR
+      run: |
+        PR_URL=$(gh pr create --base stage --head main --title "Merge from main to stage" --body "Automated PR creation")
+        gh pr review $PR_URL --approve
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Merge PR to stage
+      run: |
+        PR_URL=$(gh pr list --base stage --state open | grep "Merge from main to stage" | cut -f 1)
+        gh pr merge $PR_URL --auto
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
