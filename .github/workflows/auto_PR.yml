@@ -19,11 +19,3 @@ jobs:
         pr_title: "Sync main into stage (Auto-created PR)"
         pr_body: "Automated PR creation"
         pr_template: ".github/PULL_REQUEST_TEMPLATE.md"
-
-    - name: Approve PR
-      run: |
-        gh pr review --body "Automated PR creation" --approve
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
