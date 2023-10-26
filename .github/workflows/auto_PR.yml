@@ -10,28 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
+    - uses: actions/checkout@v3
     - name: Create PR from main to stage
-      run: |
-        git checkout main
-        git pull origin main
-        git checkout -b stage
-        git push origin stage
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      id: open-pr
+      uses: repo-sync/pull-request@v2
+      with:
+        destination_branch: "stage"
+        pr_title: "Sync main into stage (Auto-created PR)"
+        pr_body: "Automated PR creation"
+        pr_template: ".github/PULL_REQUEST_TEMPLATE.md"
 
     - name: Approve PR
       run: |
-        PR_URL=$(gh pr create --base stage --head main --title "Merge from main to stage" --body "Automated PR creation")
-        gh pr review $PR_URL --approve
+        gh pr review --body "Automated PR creation" --approve
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Merge PR to stage
-      run: |
-        PR_URL=$(gh pr list --base stage --state open | grep "Merge from main to stage" | cut -f 1)
-        gh pr merge $PR_URL --auto
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
